@@ -18,16 +18,13 @@ export function ExpenseForm() {
     date: new Date()
   })
   const [error, setError] = useState('')
-  const { state, dispatch } = useBudgets()
-
-  const budgetAvailable = useMemo(() => {
-    const totalExpense = state.expenses.reduce((total, expense) => total + expense.expenseAmount, 0)
-    return state.budget - totalExpense
-  }, [state.expenses])
+  const { state, dispatch, available } = useBudgets()
+  const [previusAmount, setPreviusAmount] = useState(0)
 
   useEffect(() => {
     if (!state.editingId) return
     const expenseToEdit = state.expenses.filter(expense => expense.id === state.editingId)[0]
+    setPreviusAmount(expenseToEdit.expenseAmount)
     setExpense(expenseToEdit)
   }, [state.editingId])
 
@@ -45,12 +42,17 @@ export function ExpenseForm() {
       setError('Todos los campos son obligatorios')
       return
     }
+    if ((expense.expenseAmount - previusAmount) > available) {
+      setError(`La cantidad sobrepasa el presupuesto disponible: $${available}`)
+      return
+    }
     //Agregar el gasto
     if (state.editingId) {
       dispatch({ type: 'update-expense', payload: { expense: { id: state.editingId, ...expense } } })
     } else {
       dispatch({ type: 'add-expense', payload: { expense } })
     }
+    setPreviusAmount(0)
   }
 
   const handleChangeDate = (value: Value) => {
@@ -88,7 +90,6 @@ export function ExpenseForm() {
           className="bg-slate-100 p-2"
           name="expenseAmount"
           min={0}
-          max={budgetAvailable}
           id="expenseAmount"
           value={expense.expenseAmount}
           onChange={handleChannge}
