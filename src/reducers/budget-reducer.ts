@@ -1,4 +1,3 @@
-import { FilterExpense } from '../components/FilterExpense'
 import { Category, DraftExpense, Expense } from '../types/index'
 import { v4 as uuidv4 } from 'uuid'
 
